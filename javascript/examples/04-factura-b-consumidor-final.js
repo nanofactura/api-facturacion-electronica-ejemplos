@@ -1,0 +1,137 @@
+/**
+ * 04 · Factura B — consumidor final
+ *
+ * Un responsable inscripto le factura a un consumidor final. Se calcula el IVA pero no se imprime
+ * discriminado.
+ *
+ * Lo que muestra este ejemplo es el manejo del umbral de identificación: por debajo de cierto
+ * importe podés facturar sin identificar al comprador; por encima, ARCA lo exige y rechaza con el
+ * código 10015. Ese umbral lo actualiza ARCA por resolución, así que NO se hardcodea: se maneja el
+ * rechazo.
+ *
+ *   node --env-file=../.env examples/04-factura-b-consumidor-final.js
+ */
+import { NanoFactura } from '../src/client.js'
+import {
+	TIPO_COMPROBANTE,
+	CONCEPTO,
+	TIPO_DOCUMENTO,
+	CONDICION_IVA,
+	ALICUOTA_IVA,
+	PROVINCIAS,
+} from '../src/constants/index.js'
+
+const nanofactura = new NanoFactura()
+
+// Un consumidor final del que no tenemos los datos.
+const clienteAnonimo = {
+	docType: TIPO_DOCUMENTO.SIN_IDENTIFICAR,
+	docNumber: '0',
+	name: 'Consumidor Final',
+	taxType: CONDICION_IVA.CONSUMIDOR_FINAL,
+	stateId: PROVINCIAS.NO_INFORMADA,
+}
+
+// El mismo cliente, ya identificado.
+const clienteIdentificado = {
+	docType: TIPO_DOCUMENTO.DNI,
+	docNumber: '28444555',
+	name: 'Ana Gómez',
+	address: 'Belgrano 450, Córdoba',
+	taxType: CONDICION_IVA.CONSUMIDOR_FINAL,
+	stateId: PROVINCIAS.CORDOBA,
+}
+
+const venta = {
+	posNumber: Number(process.env.NANOFACTURA_POS_NUMBER ?? 1),
+	voucherType: TIPO_COMPROBANTE.FACTURA_B,
+	concept: CONCEPTO.PRODUCTOS,
+	voucherDate: hoy(),
+	items: [
+		{
+			description: 'Notebook 14" 16GB',
+			quantity: 1,
+			price: 1350000,
+			taxType: ALICUOTA_IVA.VEINTIUNO,
+
+			// Lo que le falta a un ítem. Ninguno es obligatorio:
+			// code: 'NB-14-16',           // tu código interno del producto
+			// unitType: UNIDAD.UNIDADES,  // unidad de medida; 7 (unidades) por defecto
+			// discount: 10,               // 10% con discountType 'percentage', o $10 con 'amount'
+			// discountType: 'percentage', // 'percentage' (defecto) o 'amount'
+		},
+	],
+	// Envío por email al emitir: sale en segundo plano, sin bloquear la respuesta. Descomentalo
+	// poniendo una dirección tuya — el correo se manda de verdad.
+	// emails: [
+	// 	{
+	// 		email: 'vos@example.com',
+	// 		name: 'Ana Gómez',
+	// 		comments: 'Adjuntamos tu comprobante. ¡Gracias por tu compra!',
+	// 		pdfVersions: [1], // 1 original · 2 duplicado · 3 triplicado
+	// 	},
+	// ],
+
+	externalReference: 'TICKET-88213',
+
+	// ── Todo lo demás que acepta la API ──────────────────────────────────────
+	//
+	// Ninguno hace falta para emitir. Los que usan constantes que este ejemplo todavía no importa
+	// (MONEDA, TRIBUTO) piden agregarlas al `import` de arriba.
+	// Referencia: https://asistentefacturaelectronica.com/ayuda/api/emitir-comprobante
+	//
+	// idempotency: 'TICKET-88213',            // tu clave única. Si no la mandás, el cliente genera un UUID
+	// legend: '¡Gracias por su compra!',      // leyenda impresa en el comprobante. Máx. 200
+	// comments: 'Vendido en caja 3',          // nota interna: se guarda, NO se imprime. Máx. 512
+	// additionalData: { cajero: 'ML-22', sucursal: 'centro' }, // objeto libre que viaja con el comprobante
+	// receiverTaxConditionId: CONDICION_IVA.CONSUMIDOR_FINAL, // pisa customer.taxType; casi nunca hace falta
+	//
+	// Decimales de cantidad y precio unitario: 2 (defecto), 4 o 6. Los importes se redondean
+	// siempre a 2, que es lo que exige ARCA:
+	// settings: { quantityPrecision: 4, pricePrecision: 4 },
+	//
+	// Por defecto pesos a 1. Con moneda extranjera, la cotización del día la ponés vos:
+	// currency: { id: MONEDA.DOLAR, quotation: 1150 },
+	// cancelsInSameForeignCurrency: 'S',      // 'S' o 'N', sólo con moneda extranjera
+	//
+	// Con concept SERVICIOS o PRODUCTOS_Y_SERVICIOS, las tres fechas son OBLIGATORIAS (ejemplo 05):
+	// serviceFrom: '20260801',
+	// serviceTo: '20260831',
+	// serviceExpiration: '20260910',
+	//
+	// Impuestos que NO son IVA: IIBB, tasas municipales, percepciones. Acá el importe lo calculás vos:
+	// tributes: [
+	// 	{ type: TRIBUTO.PERCEPCION_IIBB, description: 'Percepción IIBB Córdoba', baseAmount: 1115702.48, aliquot: 3.5, subtotal: 39049.59 },
+	// ],
+	//
+	// Sólo en notas de crédito y débito, apuntando al comprobante que modifican (ejemplo 06):
+	// associatedVouchers: [
+	// 	{ voucherType: TIPO_COMPROBANTE.FACTURA_B, posNumber: 1, voucherNumber: 45 }, // `cuit` sólo si es de otro emisor
+	// ],
+}
+
+try {
+	const comprobante = await nanofactura.emitirComprobante({ ...venta, customer: clienteAnonimo })
+	console.log(`✅ Emitida sin identificar al comprador · CAE ${comprobante.cae}`)
+} catch (error) {
+	// 10015: el importe supera el máximo que ARCA permite sin identificar al comprador.
+	const requiereIdentificacion = error.details?.some((detalle) => detalle.code === 10015)
+
+	if (!requiereIdentificacion) throw error
+
+	console.log('⚠️ ARCA pide identificar al comprador para este importe.')
+	console.log(`  ${error.message}`)
+	console.log('\n  Reintentando con los datos del cliente…\n')
+
+	// Importante: es una emisión NUEVA, con una clave de idempotencia nueva. La anterior fue
+	// rechazada por ARCA, así que no existe ningún comprobante que recuperar.
+	const comprobante = await nanofactura.emitirComprobante({ ...venta, customer: clienteIdentificado })
+	console.log(`✅ Emitida con el comprador identificado · CAE ${comprobante.cae}`)
+}
+
+console.log('\nEn producción, la forma correcta es al revés: pedile el documento al cliente')
+console.log('siempre que puedas, y tratá el 10015 como "faltan datos", no como un error.')
+
+function hoy() {
+	return new Date().toISOString().slice(0, 10).replaceAll('-', '')
+}

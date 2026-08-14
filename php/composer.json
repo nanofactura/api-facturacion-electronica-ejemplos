@@ -1,0 +1,28 @@
+{
+  "name": "nanofactura/ejemplos",
+  "description": "Ejemplos de integración con la API de facturación electrónica ARCA de NanoFactura",
+  "type": "project",
+  "license": "MIT",
+  "keywords": [
+    "facturacion-electronica",
+    "arca",
+    "afip",
+    "argentina",
+    "factura-electronica",
+    "cae",
+    "api"
+  ],
+  "require": {
+    "php": ">=8.1",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "NanoFactura\\": "src/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

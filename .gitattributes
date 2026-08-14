@@ -1,0 +1,11 @@
+# Finales de línea del repositorio.
+* text=auto eol=lf
+
+# Binarios: git no debe tocarles los bytes.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+*.ico binary

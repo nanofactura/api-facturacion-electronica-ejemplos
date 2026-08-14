@@ -1,0 +1,30 @@
+# Credenciales. NUNCA subir.
+.env
+.env.*
+!.env.example
+
+# JavaScript
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# PHP
+/php/vendor/
+composer.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Salida de los ejemplos
+*.pdf
+/salida/
+
+# Editores y sistema operativo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

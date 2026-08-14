@@ -1,0 +1,6 @@
+# La API es HTTP con JSON: `requests` es lo único que hace falta.
+requests>=2.31
+
+# Sólo para que los ejemplos lean el .env de la raíz del repositorio. En tu proyecto podés
+# omitirlo y usar las variables de entorno de tu servidor.
+python-dotenv>=1.0

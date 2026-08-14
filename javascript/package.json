@@ -1,0 +1,34 @@
+{
+  "name": "nanofactura-ejemplos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ejemplos de integración con la API de facturación electrónica ARCA de NanoFactura",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "sin-sdk": "node --env-file=../.env examples/00-sin-sdk.js",
+    "verificar": "node --env-file=../.env examples/01-verificar-conexion.js",
+    "factura-c": "node --env-file=../.env examples/02-factura-c-monotributo.js",
+    "factura-a": "node --env-file=../.env examples/03-factura-a-responsable-inscripto.js",
+    "factura-b": "node --env-file=../.env examples/04-factura-b-consumidor-final.js",
+    "servicios": "node --env-file=../.env examples/05-servicios-con-periodo.js",
+    "nota-credito": "node --env-file=../.env examples/06-nota-de-credito.js",
+    "padron": "node --env-file=../.env examples/07-consultar-padron.js",
+    "pdf": "node --env-file=../.env examples/08-descargar-pdf.js",
+    "listar": "node --env-file=../.env examples/09-listar-comprobantes.js",
+    "lote": "node --env-file=../.env examples/10-emision-en-lote.js"
+  },
+  "keywords": [
+    "facturacion-electronica",
+    "arca",
+    "afip",
+    "argentina",
+    "factura-electronica",
+    "cae",
+    "api",
+    "nanofactura"
+  ],
+  "license": "MIT"
+}

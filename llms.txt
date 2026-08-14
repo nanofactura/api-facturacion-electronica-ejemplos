@@ -1,0 +1,52 @@
+# API de Facturación Electrónica ARCA — NanoFactura
+
+> Ejemplos de integración con la API REST de NanoFactura para emitir facturas
+> electrónicas de ARCA (ex AFIP) desde cualquier sistema, en JavaScript, PHP y
+> Python. Mandás un JSON con el cliente y los ítems, y recibís el CAE.
+
+La documentación completa, en texto plano y autocontenida, está en:
+https://asistentefacturaelectronica.com/ayuda/api/llms-full.txt
+
+Leela antes de escribir código: trae todos los endpoints, la equivalencia de
+cada campo con ARCA, la obligatoriedad según el tipo de comprobante y la
+condición fiscal, las tablas de códigos y el manejo de errores.
+
+## Documentación
+
+- [Introducción](https://asistentefacturaelectronica.com/ayuda/api.md): Qué es la API, cómo se integra y qué resuelve.
+- [Primeros pasos](https://asistentefacturaelectronica.com/ayuda/api/primeros-pasos.md): Primera factura de prueba, con ejemplos en curl, JavaScript, PHP y Python.
+- [Autenticación](https://asistentefacturaelectronica.com/ayuda/api/autenticacion.md): Bearer token, entornos TEST_/PROD_, alcance y permisos.
+- [Emitir un comprobante](https://asistentefacturaelectronica.com/ayuda/api/emitir-comprobante.md): Referencia completa del endpoint de emisión.
+- [Campos y equivalencia con ARCA](https://asistentefacturaelectronica.com/ayuda/api/campos-arca.md): Diccionario campo por campo y matriz de obligatoriedad.
+- [Qué comprobante emitir](https://asistentefacturaelectronica.com/ayuda/api/tipos-de-comprobante.md): Factura A, B, C o M según condición fiscal. Notas de crédito.
+- [Consultar comprobantes](https://asistentefacturaelectronica.com/ayuda/api/consultar-comprobantes.md): Filtros, orden y paginado.
+- [PDF y email](https://asistentefacturaelectronica.com/ayuda/api/pdf-y-email.md): Obtener el PDF a demanda y enviarlo al cliente.
+- [Consultas a ARCA](https://asistentefacturaelectronica.com/ayuda/api/consultas-arca.md): Padrón de contribuyentes y diagnóstico de conexión.
+- [Errores](https://asistentefacturaelectronica.com/ayuda/api/errores.md): Todos los códigos y cuáles reintentar.
+- [Límites y buenas prácticas](https://asistentefacturaelectronica.com/ayuda/api/limites.md): Rate limit, cuotas y emisión en volumen.
+- [Preguntas frecuentes](https://asistentefacturaelectronica.com/ayuda/api/preguntas-frecuentes.md): Costo, para quién es, lenguajes, dónde ver los comprobantes.
+
+## Puesta en marcha
+
+- [Certificado de ARCA](https://asistentefacturaelectronica.com/ayuda/api/certificado-arca.md): Generar el CSR, tramitarlo en ARCA y autorizar la facturación.
+- [Puntos de venta](https://asistentefacturaelectronica.com/ayuda/api/puntos-de-venta.md): Alta en ARCA y en NanoFactura, y carga del logo.
+- [API Keys](https://asistentefacturaelectronica.com/ayuda/api/api-keys.md): Crear, elegir entorno y permisos, y revocar.
+
+## Tablas de códigos de ARCA
+
+- [Tipos de comprobante](https://asistentefacturaelectronica.com/ayuda/api/tablas/tipos-de-comprobante.md): Factura A, B, C, M y notas de crédito y débito.
+- [Alícuotas de IVA](https://asistentefacturaelectronica.com/ayuda/api/tablas/alicuotas-iva.md): 21%, 10,5%, 27%, 5%, 2,5%, exento y no gravado.
+- [Condiciones de IVA](https://asistentefacturaelectronica.com/ayuda/api/tablas/condiciones-iva.md): Responsable inscripto, monotributo, consumidor final, exento.
+- [Tipos de documento](https://asistentefacturaelectronica.com/ayuda/api/tablas/tipos-de-documento.md): CUIT 80, CUIL 86, DNI 96, sin identificar 99.
+- [Unidades de medida](https://asistentefacturaelectronica.com/ayuda/api/tablas/unidades-de-medida.md): Unidades, kilogramos, metros, litros.
+- [Monedas](https://asistentefacturaelectronica.com/ayuda/api/tablas/monedas.md): Pesos, dólar, euro, y cómo informar la cotización.
+- [Tributos](https://asistentefacturaelectronica.com/ayuda/api/tablas/tributos.md): Ingresos Brutos, percepciones, impuestos internos.
+- [Provincias](https://asistentefacturaelectronica.com/ayuda/api/tablas/provincias.md): Los 24 códigos de provincia para el campo stateId.
+
+## Este repositorio
+
+- [AGENTS.md](AGENTS.md): Reglas al escribir código con esta API. Leelo.
+- [README.md](README.md): Cómo usar el repositorio.
+- [javascript/README.md](javascript/README.md): Node.js 18+, sin dependencias.
+- [php/README.md](php/README.md): PHP 8.1+, sin dependencias.
+- [python/README.md](python/README.md): Python 3.9+, con requests.
