@@ -30,6 +30,10 @@ comprobante = nanofactura.emitir_comprobante(
         "voucherType": TipoComprobante.FACTURA_A,
         "concept": Concepto.PRODUCTOS,
         "voucherDate": hoy(),
+        # Los precios de los ítems incluyen el IVA. Es el valor por defecto de la API, y se
+        # declara acá para que se lea en el ejemplo: de él depende cuánto sale la factura. Si tu
+        # lista de precios es neta, poné False y la API le suma el IVA por encima.
+        "priceIncludesVat": True,
         "customer": {
             # En Factura A el documento tiene que ser CUIT y la condición Responsable Inscripto.
             "docType": TipoDocumento.CUIT,
@@ -45,7 +49,7 @@ comprobante = nanofactura.emitir_comprobante(
                 "description": "Insumos de oficina — resma A4",
                 "quantity": 50,
                 "unitType": Unidad.UNIDADES,
-                "price": 4500,
+                "price": 6050,  # final: $5.000 + 21%
                 "taxType": AlicuotaIva.VEINTIUNO,  # 21%
             },
             {
@@ -53,7 +57,7 @@ comprobante = nanofactura.emitir_comprobante(
                 "description": "Servicio de mantenimiento mensual",
                 "quantity": 1,
                 "unitType": Unidad.UNIDADES,
-                "price": 120000,
+                "price": 110500,  # final: $100.000 + 10,5%
                 "taxType": AlicuotaIva.DIEZ_CINCO,  # 10,5%
                 # Lo que le falta a un ítem: un descuento de línea.
                 # "discount": 10,                # 10% con discountType "percentage", o $10 con "amount"
@@ -100,7 +104,7 @@ comprobante = nanofactura.emitir_comprobante(
         # calculás vos:
         # "tributes": [
         #     {"type": Tributo.PERCEPCION_IIBB, "description": "Percepción IIBB Santa Fe",
-        #      "baseAmount": 345000, "aliquot": 3.5, "subtotal": 12075},
+        #      "baseAmount": 350000, "aliquot": 3.5, "subtotal": 12250},
         # ],
         #
         # Sólo en notas de crédito y débito, apuntando al comprobante que modifican (ejemplo 06):
@@ -115,5 +119,6 @@ print(f"   CAE:    {comprobante['cae']}")
 print(f"   Número: {comprobante['voucherNumber']}")
 print(f"   Total:  $ {comprobante['totalAmount']}")
 
-print("\nEl total incluye el IVA de cada línea: la API calcula ImpNeto, ImpIVA y el desglose")
-print("por alícuota. Vos sólo mandaste cantidad, precio y alícuota.")
+print("\nEl total es la suma de los precios que mandaste: 50 × $6.050 + $110.500 = $413.000.")
+print("La API lo reparte en neto ($350.000) e IVA ($63.000), arma el desglose por alícuota y")
+print("se lo informa a ARCA. El comprobante A los imprime discriminados.")

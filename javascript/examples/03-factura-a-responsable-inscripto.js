@@ -28,6 +28,11 @@ const comprobante = await nanofactura.emitirComprobante({
 	concept: CONCEPTO.PRODUCTOS,
 	voucherDate: hoy(),
 
+	// Los precios de los ítems incluyen el IVA. Es el valor por defecto de la API, y se declara acá
+	// para que se lea en el ejemplo: de él depende cuánto sale la factura. Si tu lista de precios es
+	// neta, poné false y la API le suma el IVA por encima.
+	priceIncludesVat: true,
+
 	customer: {
 		// En Factura A el documento tiene que ser CUIT y la condición Responsable Inscripto.
 		docType: TIPO_DOCUMENTO.CUIT,
@@ -44,7 +49,7 @@ const comprobante = await nanofactura.emitirComprobante({
 			description: 'Insumos de oficina — resma A4',
 			quantity: 50,
 			unitType: UNIDAD.UNIDADES,
-			price: 4500,
+			price: 6050, // final: $5.000 + 21%
 			taxType: ALICUOTA_IVA.VEINTIUNO, // 21%
 		},
 		{
@@ -52,7 +57,7 @@ const comprobante = await nanofactura.emitirComprobante({
 			description: 'Servicio de mantenimiento mensual',
 			quantity: 1,
 			unitType: UNIDAD.UNIDADES,
-			price: 120000,
+			price: 110500, // final: $100.000 + 10,5%
 			taxType: ALICUOTA_IVA.DIEZ_CINCO, // 10,5%
 
 			// Lo que le falta a un ítem: un descuento de línea.
@@ -101,7 +106,7 @@ const comprobante = await nanofactura.emitirComprobante({
 	//
 	// Impuestos que NO son IVA: IIBB, tasas municipales, percepciones. Acá el importe lo calculás vos:
 	// tributes: [
-	// 	{ type: TRIBUTO.PERCEPCION_IIBB, description: 'Percepción IIBB Santa Fe', baseAmount: 345000, aliquot: 3.5, subtotal: 12075 },
+	// 	{ type: TRIBUTO.PERCEPCION_IIBB, description: 'Percepción IIBB Santa Fe', baseAmount: 350000, aliquot: 3.5, subtotal: 12250 },
 	// ],
 	//
 	// Sólo en notas de crédito y débito, apuntando al comprobante que modifican (ejemplo 06):
@@ -115,8 +120,9 @@ console.log(`   CAE:    ${comprobante.cae}`)
 console.log(`   Número: ${comprobante.voucherNumber}`)
 console.log(`   Total:  $ ${comprobante.totalAmount}`)
 
-console.log('\nEl total incluye el IVA de cada línea: la API calcula ImpNeto, ImpIVA y el desglose')
-console.log('por alícuota. Vos sólo mandaste cantidad, precio y alícuota.')
+console.log('\nEl total es la suma de los precios que mandaste: 50 × $6.050 + $110.500 = $413.000.')
+console.log('La API lo reparte en neto ($350.000) e IVA ($63.000), arma el desglose por alícuota y')
+console.log('se lo informa a ARCA. El comprobante A los imprime discriminados.')
 
 function hoy() {
 	return new Date().toISOString().slice(0, 10).replaceAll('-', '')

@@ -129,6 +129,20 @@ stateId:     PROVINCIAS.SANTA_FE          // 12
 
 Están las ocho tablas: tipos de comprobante, alícuotas de IVA, condiciones de IVA, tipos de documento, unidades de medida, monedas, tributos y provincias.
 
+## El precio del ítem incluye el IVA
+
+`priceIncludesVat` vale `true` salvo que digas lo contrario, y decide cómo se leen todos los `price` del comprobante: **el precio que mandás es el precio final**, y la API le extrae el IVA para armar el desglose que ARCA pide.
+
+```js
+price: 121000, taxType: ALICUOTA_IVA.VEINTIUNO   // total $121.000 = neto $100.000 + IVA $21.000
+```
+
+Si tu lista de precios es neta, mandá `priceIncludesVat: false` y la API suma el IVA por encima: el mismo ítem pasa a ser una factura de $146.410.
+
+Es un solo valor para todo el comprobante: no se puede mezclar precios netos y finales en el mismo pedido. Y en los comprobantes **C** no hace nada, porque no hay IVA que separar.
+
+Está en los ejemplos `03` (A) y `04` (B).
+
 ## Tres cosas que conviene saber antes de integrar
 
 **Guardá los identificadores, no los documentos.** De cada emisión guardá `id`, `cae`, `voucherNumber`, `posNumber` y `voucherType`. El PDF se genera solo, en segundo plano, y lo pedís a demanda cuando alguien lo abre o lo imprime — no hace falta almacenarlo.

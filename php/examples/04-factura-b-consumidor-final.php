@@ -53,6 +53,13 @@ $venta = [
     'voucherType' => TipoComprobante::FACTURA_B,
     'concept' => Concepto::PRODUCTOS,
     'voucherDate' => hoy(),
+
+    // El precio del ítem es el que ve el cliente: $1.350.000 finales, IVA adentro. Es el valor por
+    // defecto de la API y en una Factura B es casi siempre el que corresponde, porque el comprobante
+    // no discrimina IVA y el receptor paga ese número. Con false, la API lo tomaría como neto y la
+    // factura saldría $1.633.500.
+    'priceIncludesVat' => true,
+
     'items' => [
         [
             'description' => 'Notebook 14" 16GB',
