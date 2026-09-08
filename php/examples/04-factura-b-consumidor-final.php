@@ -129,11 +129,7 @@ try {
     echo "✅ Emitida sin identificar al comprador · CAE {$comprobante['cae']}\n";
 } catch (ApiException $e) {
     // 10015: el importe supera el máximo que ARCA permite sin identificar al comprador.
-    $detalles = is_array($e->details) ? $e->details : [];
-    $requiereIdentificacion = algunoCumple(
-        $detalles,
-        static fn ($detalle): bool => ($detalle['code'] ?? null) === 10015
-    );
+    $requiereIdentificacion = $e->tieneCodigoArca(10015);
 
     if (!$requiereIdentificacion) {
         throw $e;
@@ -151,18 +147,3 @@ try {
 
 echo "\nEn producción, la forma correcta es al revés: pedile el documento al cliente\n";
 echo "siempre que puedas, y tratá el 10015 como \"faltan datos\", no como un error.\n";
-
-/**
- * Equivalente al `array_any` que llegó en PHP 8.4, con otro nombre para no chocar con el built-in
- * en esas versiones. Mantiene el ejemplo compatible desde 8.1.
- */
-function algunoCumple(array $items, callable $predicado): bool
-{
-    foreach ($items as $item) {
-        if ($predicado($item)) {
-            return true;
-        }
-    }
-
-    return false;
-}

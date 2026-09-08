@@ -154,9 +154,23 @@ $cuerpo = json_decode($respuesta, true);
 if (empty($cuerpo['ok'])) {
     fwrite(STDERR, "ERROR {$status} · " . ($cuerpo['code'] ?? 'sin código') . "\n");
     fwrite(STDERR, ($cuerpo['error'] ?? $respuesta) . "\n");
-    // `details` trae los rechazos de ARCA con su código, cuando el error viene de ellos.
-    if (!empty($cuerpo['details'])) {
-        fwrite(STDERR, json_encode($cuerpo['details'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n");
+    // `details` es opcional y SU FORMA LA DETERMINA `code`: una lista de rechazos en un ARCA_ERROR,
+    // un objeto con los campos que fallaron en un VALIDATION_ERROR. Por eso se mira el código
+    // primero. Deducirla de la forma —"¿es una lista?"— confunde un pedido mal armado con un
+    // rechazo fiscal, que se corrigen de maneras muy distintas.
+    $detalles = $cuerpo['details'] ?? null;
+
+    if (($cuerpo['code'] ?? null) === 'ARCA_ERROR' && $detalles) {
+        foreach ($detalles as $detalle) {
+            fwrite(STDERR, "  ({$detalle['code']}) {$detalle['msg']}\n");
+        }
+    } elseif (($cuerpo['code'] ?? null) === 'VALIDATION_ERROR' && $detalles) {
+        // `field` es la ruta del dato dentro del JSON que mandaste: `items.0.price`.
+        foreach ($detalles['errors'] as $campo) {
+            fwrite(STDERR, '  ' . ($campo['field'] ?? '(cuerpo)') . ": {$campo['message']}\n");
+        }
+    } elseif ($detalles) {
+        fwrite(STDERR, json_encode($detalles, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n");
     }
     exit(1);
 }

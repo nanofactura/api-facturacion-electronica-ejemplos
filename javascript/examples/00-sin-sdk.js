@@ -116,8 +116,20 @@ if (!API_KEY || !ID_EMPRESA) {
 	if (!cuerpo.ok) {
 		console.error(`ERROR ${respuesta.status} · ${cuerpo.code ?? 'sin código'}`)
 		console.error(cuerpo.error)
-		// `details` trae los rechazos de ARCA con su código, cuando el error viene de ellos.
-		if (cuerpo.details) console.error(JSON.stringify(cuerpo.details, null, 2))
+		// `details` es opcional y SU FORMA LA DETERMINA `code`: una lista de rechazos en un
+		// ARCA_ERROR, un objeto con los campos que fallaron en un VALIDATION_ERROR. Por eso se mira
+		// el código primero. Deducirla de la forma —"¿es una lista?"— confunde un pedido mal armado
+		// con un rechazo fiscal, que se corrigen de maneras muy distintas.
+		if (cuerpo.code === 'ARCA_ERROR' && cuerpo.details) {
+			for (const { code, msg } of cuerpo.details) console.error(`  (${code}) ${msg}`)
+		} else if (cuerpo.code === 'VALIDATION_ERROR' && cuerpo.details) {
+			// `field` es la ruta del dato dentro del JSON que mandaste: `items.0.price`.
+			for (const { field, message } of cuerpo.details.errors) {
+				console.error(`  ${field ?? '(cuerpo)'}: ${message}`)
+			}
+		} else if (cuerpo.details) {
+			console.error(JSON.stringify(cuerpo.details, null, 2))
+		}
 		process.exitCode = 1
 	} else {
 		const factura = cuerpo.result

@@ -142,9 +142,21 @@ except urllib.error.HTTPError as e:
     cuerpo = json.loads(e.read().decode("utf-8"))
     print(f"ERROR {e.code} · {cuerpo.get('code', 'sin código')}")
     print(cuerpo.get("error"))
-    # `details` trae los rechazos de ARCA con su código, cuando el error viene de ellos.
-    if cuerpo.get("details"):
-        print(json.dumps(cuerpo["details"], indent=2, ensure_ascii=False))
+    # `details` es opcional y SU FORMA LA DETERMINA `code`: una lista de rechazos en un ARCA_ERROR,
+    # un objeto con los campos que fallaron en un VALIDATION_ERROR. Por eso se mira el código
+    # primero. Deducirla de la forma —"¿es una lista?"— confunde un pedido mal armado con un rechazo
+    # fiscal, que se corrigen de maneras muy distintas.
+    detalles = cuerpo.get("details")
+
+    if cuerpo.get("code") == "ARCA_ERROR" and detalles:
+        for detalle in detalles:
+            print(f"  ({detalle['code']}) {detalle['msg']}")
+    elif cuerpo.get("code") == "VALIDATION_ERROR" and detalles:
+        # `field` es la ruta del dato dentro del JSON que mandaste: `items.0.price`.
+        for campo in detalles["errors"]:
+            print(f"  {campo['field'] or '(cuerpo)'}: {campo['message']}")
+    elif detalles:
+        print(json.dumps(detalles, indent=2, ensure_ascii=False))
     sys.exit(1)
 
 factura = cuerpo["result"]

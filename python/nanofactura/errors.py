@@ -61,5 +61,62 @@ class NanoFacturaError(Exception):
         """Rechazo de negocio de ARCA: ``details`` trae los códigos exactos que devolvió."""
         return self.code == "ARCA_ERROR"
 
+    @property
+    def arca_codes(self) -> list[int]:
+        """Los códigos de rechazo que devolvió ARCA, o una lista vacía si el error no es de ellos.
+
+        ``details`` no tiene una sola forma: en un rechazo de ARCA es la lista de observaciones,
+        pero en un error de validación o de cupo es un diccionario. Por eso la pregunta "¿ARCA
+        devolvió el código N?" se hace acá y no recorriendo ``details`` a mano, que rompe apenas el
+        error es de otro tipo.
+        """
+        if not isinstance(self.details, list):
+            return []
+
+        codes = []
+        for detalle in self.details:
+            code = detalle.get("code") if isinstance(detalle, dict) else None
+            if isinstance(code, bool):
+                continue
+            if isinstance(code, int):
+                codes.append(code)
+            elif isinstance(code, str) and code.strip().lstrip("-").isdigit():
+                codes.append(int(code))
+        return codes
+
+    def tiene_codigo_arca(self, code: int) -> bool:
+        """Si ARCA rechazó el comprobante con ese código."""
+        return code in self.arca_codes
+
+    @property
+    def campos_invalidos(self) -> list[dict[str, Any]]:
+        """Los campos que la API rechazó, o una lista vacía si el error no es de validación.
+
+        Cada elemento trae ``field`` —la ruta del dato dentro del cuerpo que mandaste, con los
+        índices de las listas: ``items.0.price``— y ``message``. ``field`` viene en ``None`` cuando
+        el problema es del cuerpo entero y no de un campo puntual.
+
+        Sirve para señalar el campo en un formulario sin interpretar el texto del mensaje. Un
+        ``VALIDATION_ERROR`` que sale de una regla de negocio —una clave de idempotencia reusada,
+        por ejemplo— no trae campos: ahí la lista vuelve vacía y lo que explica el error es
+        ``message``.
+        """
+        errors = self.details.get("errors") if isinstance(self.details, dict) else None
+        if not isinstance(errors, list):
+            return []
+
+        campos = []
+        for error in errors:
+            if not isinstance(error, dict):
+                continue
+            field = error.get("field")
+            campos.append(
+                {
+                    "field": field if isinstance(field, str) else None,
+                    "message": str(error.get("message") or ""),
+                }
+            )
+        return campos
+
     def __str__(self) -> str:
         return f"{self.code}: {self.message}" if self.code else self.message

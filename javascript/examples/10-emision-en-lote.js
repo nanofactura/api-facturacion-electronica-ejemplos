@@ -75,7 +75,7 @@ for (const venta of ventas) {
 
 		// 3. Cortá al primer error PERMANENTE: si el primero está mal armado, probablemente lo
 		//    estén todos, y seguir sólo suma rechazos. Los transitorios ya los reintentó el cliente.
-		if (!error.isRetryable && error.code !== 'ARCA_ERROR') {
+		if (!error.isRetryable && !error.isArcaRejection) {
 			console.log('\n⛔ Error de configuración: se corta el lote.')
 			break
 		}

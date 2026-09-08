@@ -80,7 +80,7 @@ print(comprobante["quota"])          # estado del cupo mensual (o None)
 | Archivo | |
 | :--- | :--- |
 | `client.py` | El cliente: autenticación, envelope `{ok, result}`, reintentos e idempotencia |
-| `errors.py` | `NanoFacturaError` con `code`, `status`, `details`, `is_retryable` y `is_arca_rejection` |
+| `errors.py` | `NanoFacturaError` con `code`, `status`, `details`, `is_retryable`, `tiene_codigo_arca()` y `campos_invalidos` |
 | `constants/` | Las ocho tablas de códigos de ARCA, como `IntEnum` |
 
 ### Métodos
@@ -116,6 +116,10 @@ except NanoFacturaError as error:
         # ARCA rechazó el comprobante. `details` trae los códigos exactos.
         for detalle in error.details:
             print(f"({detalle['code']}) {detalle['msg']}")
+    elif error.code == "VALIDATION_ERROR":
+        # El pedido está mal armado. `field` es la ruta del dato dentro del cuerpo que mandaste.
+        for campo in error.campos_invalidos:
+            print(f"{campo['field'] or '(cuerpo)'}: {campo['message']}")
     else:
         print(error.code, error.message)
 ```

@@ -60,7 +60,7 @@ const comprobante = await nanofactura.emitirComprobante({
 	// poniendo una dirección tuya — el correo se manda de verdad.
 	// emails: [
 	// 	{
-	// 		email: 'vos@tudominio.com',
+	// 		email: 'vos@example.com',
 	// 		name: 'Pedro López',
 	// 		comments: 'Adjuntamos tu comprobante. ¡Gracias por tu compra!',
 	// 		pdfVersions: [1], // 1 original · 2 duplicado · 3 triplicado

@@ -85,7 +85,7 @@ echo $comprobante['voucherNumber'];  // 45
 | Archivo | |
 | :--- | :--- |
 | `Client.php` | El cliente: autenticación, envelope `{ ok, result }`, reintentos e idempotencia |
-| `ApiException.php` | Excepción con `errorCode`, `status`, `details`, `isRetryable()` y `isArcaRejection()` |
+| `ApiException.php` | Excepción con `errorCode`, `status`, `details`, `isRetryable()`, `tieneCodigoArca()` y `camposInvalidos()` |
 | `Constants/` | Las ocho tablas de códigos de ARCA |
 
 ### Métodos
@@ -121,6 +121,11 @@ try {
         // ARCA rechazó el comprobante. `details` trae los códigos exactos.
         foreach ($e->details as $detalle) {
             error_log("({$detalle['code']}) {$detalle['msg']}");
+        }
+    } elseif ($e->errorCode === 'VALIDATION_ERROR') {
+        // El pedido está mal armado. `field` es la ruta del dato dentro del cuerpo que mandaste.
+        foreach ($e->camposInvalidos() as $campo) {
+            error_log(($campo['field'] ?? '(cuerpo)') . ": {$campo['message']}");
         }
     } else {
         error_log("{$e->errorCode}: {$e->getMessage()}");

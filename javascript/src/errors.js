@@ -44,4 +44,41 @@ export class NanoFacturaError extends Error {
 	get isArcaRejection() {
 		return this.code === 'ARCA_ERROR'
 	}
+
+	/**
+	 * Los códigos de rechazo que devolvió ARCA, o un array vacío si el error no viene de ellos.
+	 *
+	 * `details` no tiene una sola forma: en un rechazo de ARCA es la lista de observaciones, pero en
+	 * un error de validación o de cupo es un objeto. Por eso la pregunta "¿ARCA devolvió el código
+	 * N?" se hace acá y no recorriendo `details` a mano, que rompe apenas el error es de otro tipo.
+	 */
+	get arcaCodes() {
+		if (!Array.isArray(this.details)) return []
+		return this.details.map((detalle) => Number(detalle?.code)).filter(Number.isFinite)
+	}
+
+	/** Si ARCA rechazó el comprobante con ese código. */
+	tieneCodigoArca(code) {
+		return this.arcaCodes.includes(Number(code))
+	}
+
+	/**
+	 * Los campos que la API rechazó, o un array vacío si el error no es de validación.
+	 *
+	 * Cada elemento trae `field` —la ruta del dato dentro del cuerpo que mandaste, con los índices de
+	 * los arreglos: `items.0.price`— y `message`. `field` viene en null cuando el problema es del
+	 * cuerpo entero y no de un campo puntual.
+	 *
+	 * Sirve para señalar el campo en un formulario sin interpretar el texto del mensaje. Un
+	 * `VALIDATION_ERROR` que sale de una regla de negocio —una clave de idempotencia reusada, por
+	 * ejemplo— no trae campos: ahí el array vuelve vacío y lo que explica el error es `message`.
+	 */
+	get camposInvalidos() {
+		const errors = this.details?.errors
+		if (!Array.isArray(errors)) return []
+		return errors.map((error) => ({
+			field: error?.field ?? null,
+			message: String(error?.message ?? ''),
+		}))
+	}
 }

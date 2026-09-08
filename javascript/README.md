@@ -85,7 +85,7 @@ console.log(comprobante.quota?.remaining)
 | Archivo | |
 | :--- | :--- |
 | `client.js` | El cliente: autenticación, envelope `{ ok, result }`, reintentos e idempotencia |
-| `errors.js` | `NanoFacturaError` con `code`, `status`, `details` y `isRetryable` |
+| `errors.js` | `NanoFacturaError` con `code`, `status`, `details`, `isRetryable`, `tieneCodigoArca()` y `camposInvalidos` |
 | `constants/` | Las ocho tablas de códigos de ARCA |
 
 ### Métodos
@@ -120,6 +120,9 @@ try {
   if (error.isArcaRejection) {
     // ARCA rechazó el comprobante. `details` trae los códigos exactos.
     for (const { code, msg } of error.details) console.error(`(${code}) ${msg}`)
+  } else if (error.code === 'VALIDATION_ERROR') {
+    // El pedido está mal armado. `field` es la ruta del dato dentro del cuerpo que mandaste.
+    for (const { field, message } of error.camposInvalidos) console.error(`${field ?? '(cuerpo)'}: ${message}`)
   } else if (error.isRetryable) {
     // El cliente ya reintentó 3 veces con backoff antes de llegar acá.
   } else {

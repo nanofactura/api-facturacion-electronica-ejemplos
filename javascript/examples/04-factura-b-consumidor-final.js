@@ -122,7 +122,7 @@ try {
 	console.log(`✅ Emitida sin identificar al comprador · CAE ${comprobante.cae}`)
 } catch (error) {
 	// 10015: el importe supera el máximo que ARCA permite sin identificar al comprador.
-	const requiereIdentificacion = error.details?.some((detalle) => detalle.code === 10015)
+	const requiereIdentificacion = error.tieneCodigoArca?.(10015)
 
 	if (!requiereIdentificacion) throw error
 

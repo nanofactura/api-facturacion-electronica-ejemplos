@@ -63,4 +63,77 @@ final class ApiException extends RuntimeException
     {
         return $this->errorCode === 'ARCA_ERROR';
     }
+
+    /**
+     * Los códigos de rechazo que devolvió ARCA, o un array vacío si el error no viene de ellos.
+     *
+     * `details` no tiene una sola forma: en un rechazo de ARCA es la lista de observaciones, pero
+     * en un error de validación o de cupo es un objeto. Por eso la pregunta "¿ARCA devolvió el
+     * código N?" se hace acá y no recorriendo `details` a mano, que rompe apenas el error es de
+     * otro tipo.
+     *
+     * @return list<int>
+     */
+    public function arcaCodes(): array
+    {
+        if (!is_array($this->details) || !array_is_list($this->details)) {
+            return [];
+        }
+
+        $codes = [];
+
+        foreach ($this->details as $detalle) {
+            $code = is_array($detalle) ? ($detalle['code'] ?? null) : null;
+
+            if (is_int($code) || (is_string($code) && ctype_digit($code))) {
+                $codes[] = (int) $code;
+            }
+        }
+
+        return $codes;
+    }
+
+    /** Si ARCA rechazó el comprobante con ese código. */
+    public function tieneCodigoArca(int $code): bool
+    {
+        return in_array($code, $this->arcaCodes(), true);
+    }
+
+    /**
+     * Los campos que la API rechazó, o un array vacío si el error no es de validación.
+     *
+     * Cada elemento trae `field` —la ruta del dato dentro del cuerpo que mandaste, con los índices
+     * de los arreglos: `items.0.price`— y `message`. `field` viene en null cuando el problema es del
+     * cuerpo entero y no de un campo puntual.
+     *
+     * Sirve para señalar el campo en un formulario sin interpretar el texto del mensaje. Un
+     * `VALIDATION_ERROR` que sale de una regla de negocio —una clave de idempotencia reusada, por
+     * ejemplo— no trae campos: ahí el array vuelve vacío y lo que explica el error es el mensaje.
+     *
+     * @return list<array{field: ?string, message: string}>
+     */
+    public function camposInvalidos(): array
+    {
+        $errors = is_array($this->details) ? ($this->details['errors'] ?? null) : null;
+
+        if (!is_array($errors) || !array_is_list($errors)) {
+            return [];
+        }
+
+        $campos = [];
+
+        foreach ($errors as $error) {
+            if (!is_array($error)) {
+                continue;
+            }
+
+            $field = $error['field'] ?? null;
+            $campos[] = [
+                'field' => is_string($field) ? $field : null,
+                'message' => (string) ($error['message'] ?? ''),
+            ];
+        }
+
+        return $campos;
+    }
 }

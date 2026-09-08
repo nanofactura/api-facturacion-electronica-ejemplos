@@ -120,8 +120,7 @@ try:
     print(f"✅ Emitida sin identificar al comprador · CAE {comprobante['cae']}")
 except NanoFacturaError as error:
     # 10015: el importe supera el máximo que ARCA permite sin identificar al comprador.
-    detalles = error.details if isinstance(error.details, list) else []
-    requiere_identificacion = any(d.get("code") == 10015 for d in detalles)
+    requiere_identificacion = error.tiene_codigo_arca(10015)
 
     if not requiere_identificacion:
         raise
