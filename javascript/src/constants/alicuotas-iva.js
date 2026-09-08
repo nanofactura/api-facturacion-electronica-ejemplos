@@ -9,9 +9,9 @@
  * https://asistentefacturaelectronica.com/ayuda/api/tablas/alicuotas-iva
  */
 export const ALICUOTA_IVA = Object.freeze({
-	NO_GRAVADO: 1, // no genera IVA, va a ImpTotConc
-	EXENTO: 2, // no genera IVA, va a ImpOpEx
-	CERO: 3, // 0%, va a ImpOpEx
+	NO_GRAVADO: 1, // suma al importe no gravado; no genera IVA
+	EXENTO: 2, // suma al importe exento; no genera IVA
+	CERO: 3, // 0%: gravado, suma al neto con un IVA de 0
 	DIEZ_CINCO: 4, // 10,5%
 	VEINTIUNO: 5, // 21%  ← la alícuota general
 	VEINTISIETE: 6, // 27%

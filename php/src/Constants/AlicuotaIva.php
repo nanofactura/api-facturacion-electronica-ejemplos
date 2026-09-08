@@ -16,9 +16,9 @@ namespace NanoFactura\Constants;
  */
 final class AlicuotaIva
 {
-    public const NO_GRAVADO = 1;   // no genera IVA, va a ImpTotConc
-    public const EXENTO = 2;       // no genera IVA, va a ImpOpEx
-    public const CERO = 3;         // 0%, va a ImpOpEx
+    public const NO_GRAVADO = 1;   // suma al importe no gravado; no genera IVA
+    public const EXENTO = 2;       // suma al importe exento; no genera IVA
+    public const CERO = 3;         // 0%: gravado, suma al neto con un IVA de 0
     public const DIEZ_CINCO = 4;   // 10,5%
     public const VEINTIUNO = 5;    // 21%  ← la alícuota general
     public const VEINTISIETE = 6;  // 27%
