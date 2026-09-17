@@ -39,7 +39,15 @@ class NanoFacturaError(Exception):
         * ``SUBSCRIPTION_QUOTA_EXCEEDED`` (429) cede al ampliar el límite o al renovarse el período.
         * El certificado sin delegar al servicio (502) cede al delegarlo en el portal de ARCA. Es
           :attr:`es_certificado_sin_delegar`.
+
+        Y uno va al revés: ``ARCA_UNCONFIRMED`` llega como 409 —un status que acá es permanente—
+        pero es el que MÁS conviene reintentar. Significa que se cortó con ARCA al autorizar y no se
+        pudo confirmar si el comprobante salió; el reintento manda la misma ``idempotency``, así que
+        la API consulta ARCA y devuelve el comprobante si ya existía en vez de emitir otro. Tratarlo
+        como permanente deja al cliente sin su comprobante y obliga a resolverlo a mano.
         """
+        if self.code == "ARCA_UNCONFIRMED":
+            return True
         if self.code == "SUBSCRIPTION_QUOTA_EXCEEDED":
             return False
         if self.es_certificado_sin_delegar:

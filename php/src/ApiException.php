@@ -33,9 +33,19 @@ final class ApiException extends RuntimeException
      *  - SUBSCRIPTION_QUOTA_EXCEEDED (429) cede al ampliar el límite o al renovarse el período.
      *  - El certificado sin delegar al servicio (502) cede al delegarlo en el portal de ARCA.
      *    Es esCertificadoSinDelegar().
+     *
+     * Y uno va al revés: ARCA_UNCONFIRMED llega como 409 —un status que acá es permanente— pero es
+     * el que MÁS conviene reintentar. Significa que se cortó con ARCA al autorizar y no se pudo
+     * confirmar si el comprobante salió; el reintento manda la misma idempotency, así que la API
+     * consulta ARCA y devuelve el comprobante si ya existía en vez de emitir otro. Tratarlo como
+     * permanente deja al cliente sin su comprobante y obliga a resolverlo a mano.
      */
     public function isRetryable(): bool
     {
+        if ($this->errorCode === 'ARCA_UNCONFIRMED') {
+            return true;
+        }
+
         if ($this->errorCode === 'SUBSCRIPTION_QUOTA_EXCEEDED') {
             return false;
         }

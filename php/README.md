@@ -135,6 +135,8 @@ try {
 
 El cliente **ya reintenta solo** los errores transitorios (`429`, `500`, `502`, `503`, `504`), con backoff exponencial y respetando `Retry-After`. Los permanentes (`400`, `401`, `402`, `403`, `404`, `409`, `422`) los lanza de inmediato: reintentarlos no cambiaría nada.
 
+Con una excepción, que va al revés: **`ARCA_UNCONFIRMED`** llega como `409` y **sí se reintenta**. Significa que se cortó la comunicación con ARCA al autorizar y no se pudo confirmar si el comprobante salió; como el reintento manda la misma clave de idempotencia, la API consulta ARCA y devuelve el comprobante si ya existía en vez de emitir otro.
+
 Dos que caen en ese rango pero **no ceden reintentando** quedan afuera: la cuota mensual agotada (`SUBSCRIPTION_QUOTA_EXCEEDED`) y el certificado sin delegar al servicio de ARCA (`Computador no autorizado a acceder al servicio`, `502`). Se lanzan de inmediato.
 
 La clave de idempotencia se genera una vez por llamada y se conserva a través de los reintentos, que es lo que hace seguro reintentar tras un timeout.
