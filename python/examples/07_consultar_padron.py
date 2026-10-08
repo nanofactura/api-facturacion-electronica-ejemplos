@@ -6,9 +6,8 @@ emitir— y te trae la provincia ya codificada, sin que nadie la tipee mal.
 
 Guardá el resultado en tu base: no hace falta consultarlo en cada venta al mismo cliente.
 
-⚠️ El padrón se autoriza APARTE de la facturación electrónica: son servicios distintos de ARCA y cada
-uno se delega por separado. Si emitís sin problemas pero esto falla con "Computador no autorizado",
-es eso lo que falta.
+Si estás integrando en homologación, consultá el padrón con una API key de producción: la base de
+homologación tiene datos de prueba y responde distinto. Esta consulta sólo lee, no emite nada.
 
     python examples/07_consultar_padron.py [documento]
 """
@@ -28,25 +27,22 @@ documento = sys.argv[1] if len(sys.argv) > 1 else "30703088534"
 try:
     contribuyente = nanofactura.consultar_padron(documento)
 except NanoFacturaError as error:
-    # Los dos motivos por los que esto falla en la práctica. Ninguno cede reintentando.
-    if error.es_certificado_sin_delegar:
-        # El mensaje de la API nombra el servicio, el alias del certificado y el entorno: son los
-        # tres datos con los que se encuentra la relación que falta en el portal de ARCA.
-        print(f"⚠️ {error.message}", file=sys.stderr)
-        print("  Los servicios de padrón se autorizan aparte de la facturación electrónica:", file=sys.stderr)
-        print(
-            "  https://asistentefacturaelectronica.com/ayuda/api/certificado-arca",
-            file=sys.stderr,
-        )
-        sys.exit(1)
     if error.status == 404:
         print(f"⚠️ ARCA no tiene ningún contribuyente con el documento {documento}.", file=sys.stderr)
         sys.exit(1)
+    # ARCA puede negarse a informar una clave concreta por el estado de ESE contribuyente —cancelada,
+    # inactiva, con actividades fuera del nomenclador vigente—. No es un problema de configuración ni
+    # cede reintentando: es lo que ARCA sabe de ese CUIT.
+    if error.code == "ARCA_ERROR":
+        print(f"⚠️ ARCA no informa datos de {documento}: {error.message}", file=sys.stderr)
+        sys.exit(1)
     raise
 
-# Qué padrón contestó. A las personas jurídicas les corresponde la Constancia de Inscripción y al
-# resto el Padrón A13; se puede pedir el otro con `consultar_padron(documento, service="a13")`.
-print(f"Padrón de {documento} · consultado en {contribuyente['source']}")
+# `cache["hit"]` dice si la respuesta salió de un dato ya guardado en vez de consultarse en el
+# momento, y `cache["stale"]` si ese dato estaba vencido y se usó igual porque ARCA no respondió.
+cache = contribuyente.get("cache") or {}
+origen = (" · dato guardado (vencido)" if cache.get("stale") else " · dato guardado") if cache.get("hit") else ""
+print(f"Padrón de {documento}{origen}")
 print(f"   Nombre:    {contribuyente['name']}")
 print(f"   Domicilio: {contribuyente.get('address') or '(sin domicilio cargado)'}")
 print(f"   Provincia: {contribuyente.get('stateId') if contribuyente.get('stateId') is not None else 'no informada'}")

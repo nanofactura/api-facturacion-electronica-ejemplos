@@ -60,7 +60,7 @@ final class ApiException extends RuntimeException
     /**
      * ARCA rechazó la autenticación porque al certificado le falta la delegación al servicio que se
      * está usando (`wsfe` para emitir, los de padrón para consultarlo). Se autoriza cada servicio por
-     * separado, en el Administrador de Relaciones de Clave Fiscal:
+     * separado, en el Administrador de Relaciones con Clave Fiscal:
      * https://asistentefacturaelectronica.com/ayuda/api/certificado-arca
      */
     public function esCertificadoSinDelegar(): bool

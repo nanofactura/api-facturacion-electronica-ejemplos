@@ -11,9 +11,8 @@ declare(strict_types=1);
  *
  * Guardá el resultado en tu base: no hace falta consultarlo en cada venta al mismo cliente.
  *
- * ⚠️ El padrón se autoriza APARTE de la facturación electrónica: son servicios distintos de ARCA y
- * cada uno se delega por separado. Si emitís sin problemas pero esto falla con "Computador no
- * autorizado", es eso lo que falta.
+ * Si estás integrando en homologación, consultá el padrón con una API key de producción: la base
+ * de homologación tiene datos de prueba y responde distinto. Esta consulta sólo lee, no emite nada.
  *
  *   php examples/07-consultar-padron.php [documento]
  */
@@ -32,25 +31,28 @@ $documento = $argv[1] ?? '30703088534';
 try {
     $contribuyente = $nanofactura->consultarPadron($documento);
 } catch (ApiException $e) {
-    // Los dos motivos por los que esto falla en la práctica. Ninguno cede reintentando.
-    if ($e->esCertificadoSinDelegar()) {
-        // El mensaje de la API nombra el servicio, el alias del certificado y el entorno: son los
-        // tres datos con los que se encuentra la relación que falta en el portal de ARCA.
-        fwrite(STDERR, "⚠️ {$e->getMessage()}\n");
-        fwrite(STDERR, "  Los servicios de padrón se autorizan aparte de la facturación electrónica:\n");
-        fwrite(STDERR, "  https://asistentefacturaelectronica.com/ayuda/api/certificado-arca\n");
+    if ($e->status === 404) {
+        fwrite(STDERR, "⚠️ ARCA no tiene ningún contribuyente con el documento {$documento}.
+");
         exit(1);
     }
-    if ($e->status === 404) {
-        fwrite(STDERR, "⚠️ ARCA no tiene ningún contribuyente con el documento {$documento}.\n");
+    // ARCA puede negarse a informar una clave concreta por el estado de ESE contribuyente —cancelada,
+    // inactiva, con actividades fuera del nomenclador vigente—. No es un problema de configuración ni
+    // cede reintentando: es lo que ARCA sabe de ese CUIT.
+    if ($e->code === 'ARCA_ERROR') {
+        fwrite(STDERR, "⚠️ ARCA no informa datos de {$documento}: {$e->getMessage()}
+");
         exit(1);
     }
     throw $e;
 }
 
-// Qué padrón contestó. A las personas jurídicas les corresponde la Constancia de Inscripción y al
-// resto el Padrón A13; se puede pedir el otro con consultarPadron($documento, 'a13').
-echo "Padrón de {$documento} · consultado en {$contribuyente['source']}\n";
+// `cache.hit` dice si la respuesta salió de un dato ya guardado en vez de consultarse en el momento,
+// y `cache.stale` si ese dato estaba vencido y se usó igual porque ARCA no respondió.
+$cache = $contribuyente['cache'] ?? [];
+$origen = ($cache['hit'] ?? false) ? (($cache['stale'] ?? false) ? ' · dato guardado (vencido)' : ' · dato guardado') : '';
+echo "Padrón de {$documento}{$origen}
+";
 echo "   Nombre:    {$contribuyente['name']}\n";
 echo '   Domicilio: ' . (($contribuyente['address'] ?? '') ?: '(sin domicilio cargado)') . "\n";
 echo '   Provincia: ' . ($contribuyente['stateId'] ?? 'no informada') . "\n";

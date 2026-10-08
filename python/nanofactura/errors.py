@@ -59,7 +59,7 @@ class NanoFacturaError(Exception):
         """ARCA rechazó la autenticación por falta de delegación del certificado al servicio.
 
         Cada servicio se autoriza por separado (``wsfe`` para emitir, los de padrón para
-        consultarlo), en el Administrador de Relaciones de Clave Fiscal:
+        consultarlo), en el Administrador de Relaciones con Clave Fiscal:
         https://asistentefacturaelectronica.com/ayuda/api/certificado-arca
         """
         return "computador no autorizado" in self.message.lower()

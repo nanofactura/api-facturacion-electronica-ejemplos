@@ -7,9 +7,8 @@
  *
  * Guardá el resultado en tu base: no hace falta consultarlo en cada venta al mismo cliente.
  *
- * ⚠️ El padrón se autoriza APARTE de la facturación electrónica: son servicios distintos de ARCA y
- * cada uno se delega por separado. Si emitís sin problemas pero esto falla con "Computador no
- * autorizado", es eso lo que falta.
+ * Si estás integrando en homologación, consultá el padrón con una API key de producción: la base
+ * de homologación tiene datos de prueba y responde distinto. Esta consulta sólo lee, no emite nada.
  *
  *   node --env-file=../.env examples/07-consultar-padron.js [documento]
  */
@@ -21,15 +20,15 @@ const nanofactura = new NanoFactura()
 const documento = process.argv[2] ?? '30703088534'
 
 const contribuyente = await nanofactura.consultarPadron(documento).catch((error) => {
-	// Los dos motivos por los que esto falla en la práctica. Ninguno cede reintentando.
-	if (error.isCertificadoSinDelegar) {
-		console.error('⚠️ Al certificado le falta la delegación a los servicios de padrón de ARCA.')
-		console.error('  Se autorizan aparte de la facturación electrónica, uno por uno:')
-		console.error('  https://asistentefacturaelectronica.com/ayuda/api/certificado-arca')
-		return null
-	}
 	if (error.status === 404) {
 		console.error(`⚠️ ARCA no tiene ningún contribuyente con el documento ${documento}.`)
+		return null
+	}
+	// ARCA puede negarse a informar una clave concreta por el estado de ESE contribuyente —cancelada,
+	// inactiva, con actividades fuera del nomenclador vigente—. No es un problema de configuración ni
+	// cede reintentando: es lo que ARCA sabe de ese CUIT.
+	if (error.code === 'ARCA_ERROR') {
+		console.error(`⚠️ ARCA no informa datos de ${documento}: ${error.message}`)
 		return null
 	}
 	throw error
@@ -40,9 +39,10 @@ const contribuyente = await nanofactura.consultarPadron(documento).catch((error)
 if (!contribuyente) {
 	process.exitCode = 1
 } else {
-	// Qué padrón contestó. A las personas jurídicas les corresponde la Constancia de Inscripción y al
-	// resto el Padrón A13; se puede pedir el otro con `consultarPadron(documento, { service: 'a13' })`.
-	console.log(`Padrón de ${documento} · consultado en ${contribuyente.source}`)
+	// `cache.hit` dice si la respuesta salió de un dato ya guardado en vez de consultarse en el momento,
+	// y `cache.stale` si ese dato estaba vencido y se usó igual porque ARCA no respondió.
+	const { hit, stale } = contribuyente.cache ?? {}
+	console.log(`Padrón de ${documento}${hit ? (stale ? ' · dato guardado (vencido)' : ' · dato guardado') : ''}`)
 	console.log(`   Nombre:    ${contribuyente.name}`)
 	console.log(`   Domicilio: ${contribuyente.address || '(sin domicilio cargado)'}`)
 	console.log(`   Provincia: ${contribuyente.stateId ?? 'no informada'}`)
