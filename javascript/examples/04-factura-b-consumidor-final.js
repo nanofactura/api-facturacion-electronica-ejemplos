@@ -23,7 +23,9 @@ import {
 
 const nanofactura = new NanoFactura()
 
-// Un consumidor final del que no tenemos los datos.
+// Un consumidor final del que no tenemos los datos. Con SIN_IDENTIFICAR no hace falta mandar
+// `docNumber` ni `name`: la API los completa con '0' —que es lo que ARCA exige para este tipo— y con
+// "Consumidor Final", que es lo que va impreso. Van explícitos acá sólo para que se vea el valor.
 const clienteAnonimo = {
 	docType: TIPO_DOCUMENTO.SIN_IDENTIFICAR,
 	docNumber: '0',
