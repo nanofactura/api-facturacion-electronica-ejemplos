@@ -88,6 +88,18 @@ final class Client
     }
 
     /**
+     * Un comprobante por su `id`, el que devolvió la emisión: el mismo arreglo que una fila del
+     * listado. Si no existe —o es del otro entorno— lanza `ApiException` con `errorCode`
+     * `NOT_FOUND` y `status` 404.
+     *
+     * @see https://asistentefacturaelectronica.com/ayuda/api/consultar-comprobantes#un-comprobante-por-id
+     */
+    public function obtenerComprobante(int|string $invoiceId): array
+    {
+        return $this->request('GET', "/invoices/{$invoiceId}");
+    }
+
+    /**
      * Descarga el PDF y lo devuelve como string binario.
      *
      * No lo guardes en tu sistema luego de generar: pedilo en el momento en que alguien lo abre o lo imprime. El PDF

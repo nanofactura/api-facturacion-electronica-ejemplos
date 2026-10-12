@@ -94,6 +94,7 @@ echo $comprobante['voucherNumber'];  // 45
 $nanofactura->verificarConexion();                          // valida clave, certificado y puntos de venta (puesta en marcha)
 $nanofactura->emitirComprobante($payload);                  // POST /invoices → CAE
 $nanofactura->listarComprobantes($filtros);                 // → ['comprobantes' => [...], 'total' => n]
+$nanofactura->obtenerComprobante($invoiceId);               // GET /invoices/:id → el comprobante
 $nanofactura->descargarPdf($invoiceId, [1, 2]);             // → string binario
 $nanofactura->esperarPdf($invoiceId);                       // igual, esperando a que se genere
 $nanofactura->agregarDestinatario($invoiceId, ['email' => …]); // programa el envío del PDF

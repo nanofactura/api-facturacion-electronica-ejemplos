@@ -94,6 +94,7 @@ console.log(comprobante.quota?.remaining)
 await nanofactura.verificarConexion()                        // valida clave, certificado y puntos de venta (puesta en marcha)
 await nanofactura.emitirComprobante(payload)                 // POST /invoices → CAE
 await nanofactura.listarComprobantes(filtros)                // → { comprobantes, total }
+await nanofactura.obtenerComprobante(invoiceId)              // GET /invoices/:id → el comprobante
 await nanofactura.descargarPdf(invoiceId, [1, 2])            // → Buffer
 await nanofactura.esperarPdf(invoiceId)                      // igual, esperando a que se genere
 await nanofactura.agregarDestinatario(invoiceId, { email })  // programa el envío del PDF

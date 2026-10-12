@@ -70,6 +70,17 @@ export class NanoFactura {
 	}
 
 	/**
+	 * Un comprobante por su `id`, el que devolvió la emisión: el mismo objeto que una fila del
+	 * listado. Si no existe —o es del otro entorno— lanza un `NanoFacturaError` con `code`
+	 * `NOT_FOUND` y `status` 404.
+	 *
+	 * @see https://asistentefacturaelectronica.com/ayuda/api/consultar-comprobantes#un-comprobante-por-id
+	 */
+	async obtenerComprobante(invoiceId) {
+		return this.#request('GET', `/invoices/${invoiceId}`)
+	}
+
+	/**
 	 * Descarga el PDF y lo devuelve como Buffer.
 	 *
 	 * No lo guardes en tu sistema luego de generar: pedilo en el momento en que alguien lo abre o lo imprime. El PDF

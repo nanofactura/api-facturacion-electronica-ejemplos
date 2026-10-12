@@ -91,6 +91,16 @@ class NanoFactura:
         respuesta = self._request("GET", "/invoices", query=filtros or {}, raw=True)
         return respuesta["result"], respuesta.get("total", 0)
 
+    def obtener_comprobante(self, invoice_id: int | str) -> dict:
+        """Un comprobante por su ``id``, el que devolvió la emisión.
+
+        Devuelve el mismo diccionario que una fila del listado. Si no existe —o es del otro
+        entorno— lanza ``NanoFacturaError`` con ``code`` ``NOT_FOUND`` y ``status`` 404.
+
+        https://asistentefacturaelectronica.com/ayuda/api/consultar-comprobantes#un-comprobante-por-id
+        """
+        return self._request("GET", f"/invoices/{invoice_id}")
+
     def descargar_pdf(self, invoice_id: int | str, versiones: list[int] | None = None) -> bytes:
         """Descarga el PDF y lo devuelve como bytes.
 

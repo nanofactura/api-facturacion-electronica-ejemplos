@@ -89,6 +89,7 @@ print(comprobante["quota"])          # estado del cupo mensual (o None)
 nanofactura.verificar_conexion()                          # valida clave, certificado y puntos de venta (puesta en marcha)
 nanofactura.emitir_comprobante(payload)                   # POST /invoices → CAE
 nanofactura.listar_comprobantes(filtros)                  # → (comprobantes, total)
+nanofactura.obtener_comprobante(invoice_id)               # GET /invoices/:id → el comprobante
 nanofactura.descargar_pdf(invoice_id, [1, 2])             # → bytes
 nanofactura.esperar_pdf(invoice_id)                       # igual, esperando a que se genere
 nanofactura.agregar_destinatario(invoice_id, {"email": …}) # programa el envío del PDF

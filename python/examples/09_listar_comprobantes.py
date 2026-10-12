@@ -28,6 +28,17 @@ for c in comprobantes:
     numero = formatear_numero(c["posNumber"], c["voucherNumber"])
     print(f"  {numero}  {c['voucherDate']}  $ {c['totalAmount']:>12}  {c['docNumber']:<11}  {c['source']}")
 
+# ── Uno por id ───────────────────────────────────────────────────────────────
+#
+# Con el `id` que devolvió la emisión —el que guardaste junto a tu venta— lo pedís directo, sin
+# filtrar el listado. Trae el mismo objeto que una fila del listado; si no existe, o es del otro
+# entorno, la API responde 404 NOT_FOUND.
+
+if comprobantes:
+    comprobante = nanofactura.obtener_comprobante(comprobantes[0]["id"])
+    pdf = "listo" if comprobante["hasPdf"] else "generándose"
+    print(f"\nEl último, por id: {comprobante['id']} · CAE {comprobante['cae']} · PDF {pdf}")
+
 # ── Facturación de un mes ────────────────────────────────────────────────────
 #
 # `date` es la fecha FISCAL (la que declaraste al emitir). `created` es cuándo se emitió realmente.

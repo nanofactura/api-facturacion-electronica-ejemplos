@@ -27,6 +27,18 @@ for (const c of comprobantes) {
 	)
 }
 
+// ── Uno por id ───────────────────────────────────────────────────────────────
+//
+// Con el `id` que devolvió la emisión —el que guardaste junto a tu venta— lo pedís directo, sin
+// filtrar el listado. Trae el mismo objeto que una fila del listado; si no existe, o es del otro
+// entorno, la API responde 404 NOT_FOUND.
+
+if (comprobantes.length) {
+	const comprobante = await nanofactura.obtenerComprobante(comprobantes[0].id)
+	const pdf = comprobante.hasPdf ? 'listo' : 'generándose'
+	console.log(`\nEl último, por id: ${comprobante.id} · CAE ${comprobante.cae} · PDF ${pdf}`)
+}
+
 // ── Facturación de un mes ────────────────────────────────────────────────────
 //
 // `date` es la fecha FISCAL (la que declaraste al emitir). `created` es cuándo se emitió realmente.

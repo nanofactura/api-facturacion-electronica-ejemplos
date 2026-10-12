@@ -108,7 +108,7 @@ Numerados en orden de dificultad, iguales en los tres lenguajes:
 | `06` | Nota de crédito | Anular un comprobante con `associatedVouchers` |
 | `07` | Consultar padrón | Armar el cliente con los datos reales de ARCA |
 | `08` | Descargar el PDF | A demanda, con espera si todavía se está generando |
-| `09` | Listar comprobantes | Filtros, orden y paginado |
+| `09` | Listar comprobantes | Uno por id, filtros, orden y paginado |
 | `10` | Emisión en lote | Secuencial por punto de venta, con reintentos |
 
 ## Constantes en vez de números
